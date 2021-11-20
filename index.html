@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Tennis Viz</title>
+  <meta name="viewport" content="initial-scale=1.0">
+  <meta charset="utf-8">
+
+  <link href="http://fonts.googleapis.com/css?family=Roboto" rel="stylesheet" type="text/css">
+  <style>
+    body {
+      padding: 0;
+      margin: 0;
+      background: #cae8e5;
+      font-family: Roboto, sans-serif;
+    }
+    /* header, footer {
+      background: #20252A;
+      color: white;
+      padding: 18px 0;
+      box-shadow: 0px 1px 3px #20252A;
+    } */
+    .container {
+      width: 960px;
+      margin: 18px auto;
+    }
+    h1 {
+      width: 960px;
+      margin: 0 auto;
+      font-size: 2em;
+    }
+    a {
+      color: white;
+    }
+    ul li {
+      margin: 0 0 8px 0;
+    }
+    #figure {
+      width: 700px;
+      height: 700px;
+    }
+    /* .outline {
+      stroke: #40767a;
+    } */
+    /* .hover {
+      fill: #3f8c84;
+      stroke-width: 3;
+    } */
+  </style>
+</head>
+
+<body>
+  <!-- <header>
+    <h1>Tennis Viz</h1>
+  </header> -->
+  <div class="container">
+    <div id="figure" style="background-color: #c0c4cb;">
+    </div>
+  </div>
+  </div>
+  <!-- <footer>
+    <div class="container">
+      <ul>
+        <li>Map authored by <a href="https://courtneysimonse.github.io/" target="_blank">Courtney Simonse</a></li>
+      </ul>
+    </div>
+  </footer> -->
+
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script>
+      // JS code here
+      // synchronous calls to data files
+
+      var statsCSV = d3.csv("data/tennis-stats.csv")
+
+      // use promise to call all data files, then send data to callback
+      Promise.all([statsCSV]).then(drawMap, error)
+
+      // function fired if there is an error
+      function error(error) {
+        console.log(error)
+      }
+
+      // // define color generator
+      // const colorPolygons = d3.scaleOrdinal(d3.schemePaired.slice(0,4));
+      const colorPolygons = d3.scaleOrdinal(["#2e3c53","#636d7e","#979ea9"]);
+      // const colorPolygons = d3.scaleOrdinal(["#3f767a","#5da9a9","#95d5d4"]);
+      const colorLabels = d3.scaleOrdinal(["#fbfcfc","#fbfcfc","#0b2745"])
+
+      // accepts the data as a parameter statesData
+      function drawMap(data) {
+
+        // data is array of our datasets
+        var statsData = data[0]
+
+        const margin = {
+            top: 0,
+            right: 0,
+            bottom: 0,
+            left: 0
+        };
+
+        // Dimensions: 700 x 700
+        // used for the initial rendering
+        // width to height proportion
+        // its preserved as the chart is resized
+        const width = 700 - margin.left - margin.right;
+        const height = 600 - margin.top - margin.bottom;
+
+        const slope = height/125;
+        const alley = width*(4.5/36);
+        const farBaseline = 450;
+        const scale = farBaseline/width;
+        const backLeft = (width-farBaseline)/2;
+        console.log('height: '+height);
+        console.log('offset: '+backLeft);
+        const length = Math.sqrt(height**2+backLeft**2);
+        console.log('length: '+length);
+
+
+        // select the map element
+        var svg = d3.select("#figure")
+          .append("svg")  // append a new SVG element
+          .attr('width', width + margin.left + margin.right)
+          .attr('height', height + margin.top + margin.bottom)
+          .call(responsivefy) // Call responsivefy to make the chart responsive
+            .append('g')
+            .attr('transform', `translate(${margin.left}, ${margin.top})`);
+
+        var line = d3.line()
+          .x(function(d) {
+            return d.x;
+          })
+          .y(function(d) {
+            return d.y;
+          });
+
+        // svg.append('rect')
+        //   .attr('width', width)
+        //   .attr('height', height)
+        //   .style('fill', '#5d9eff')
+        //   .style('stroke-width', '3px')
+        //   .style('stroke', 'white');
+
+        var outline = [{
+            x: backLeft, y: 0
+          },{
+            x: 0, y: height
+          },{
+            x: width, y: height
+          },{
+            x: backLeft+farBaseline, y: 0
+          }];
+
+        svg.append('path')
+          .attr("d", line(outline) + 'Z')
+          .style("fill", "#5d9eff")
+          .style("stroke-width", "3px")
+          .style("stroke", "white");
+
+        var sideSection = [{
+            x: backLeft, y: 0
+          },{
+            x: 0, y: height
+          },{
+            x: alley, y: height
+          },{
+            x: backLeft + alley*scale, y: 0
+          }];
+
+        svg.append('path')
+          .attr("d", line(sideSection) + 'Z')
+          .style("fill", "#5d9eff")
+          .style("stroke-width", "3px")
+          .style("stroke", "white");
+        svg.append('path')
+          .attr("d", line(sideSection) + 'Z')
+          .attr("transform", "translate("+width+",0) scale(-1,1)")
+          .style("fill", "#5d9eff")
+          .style("stroke-width", "3px")
+          .style("stroke", "white");
+
+        var backServiceLine = [{
+            x: (backLeft/height)*(2*height/3) + alley, y: height/3/3
+          },{
+            x: width - alley - (backLeft/height)*(2*height/3), y: height/3/3
+          },];
+
+        svg.append('path')
+          .attr("d", line(backServiceLine) + 'Z')
+          .style("fill", "#5d9eff")
+          .style("stroke-width", "3px")
+          .style("stroke", "white");
+
+        var middleLineY = [{
+            x: (backLeft/height)*(2*height/3), y: height*(1/3)
+          },{
+            x: width-(backLeft/height)*(2*height/3), y: height*(1/3)
+          }];
+
+        svg.append('path')
+          .attr("d", line(middleLineY) + 'Z')
+          .style("fill", "#5d9eff")
+          .style("stroke-width", "3px")
+          .style("stroke", "white");
+
+        var middleLineX = [{
+            x: width/2, y: height/3/3
+          },{
+            x: width/2, y: height/3 + height*(2/3)*(1/2)
+          }];
+
+        svg.append('path')
+          .attr("d", line(middleLineX) + 'Z')
+          .style("fill", "#5d9eff")
+          .style("stroke-width", "3px")
+          .style("stroke", "white");
+
+        const serviceLineL = width - 2*((-1/3)*(alley-backLeft-alley*scale)+alley);
+        const thirdsWidth = serviceLineL/6;
+        console.log("thirdsWidth: "+thirdsWidth);
+        const singlesNet = width - 2*((-2/3)*(alley-backLeft-alley*scale)+alley);
+        const thirdsNetWidth = singlesNet/6;
+        console.log("thirdsNetWidth: "+thirdsNetWidth);
+
+        const corner12Y = height*(1/3);
+        const corner34Y = height/3 + height/3;
+        const corner1X = (-2/3)*(alley-backLeft-alley*scale)+alley;
+        const corner2X = thirdsNetWidth+corner1X;
+        const corner4X = (-1/3)*(alley-backLeft-alley*scale)+alley;
+        const corner3X = thirdsWidth+corner4X;
+
+        const statsAreas = ['adWide','adMiddle','adT','deuceT','deuceMiddle','deuceWide'];
+
+        statsAreas.forEach((shape, i) => {
+          let statsArea = [{
+              x: corner1X + (i*thirdsNetWidth), y: corner12Y
+            },{
+              x: corner2X + (i*thirdsNetWidth), y: corner12Y
+            },{
+              x: corner4X + ((1+i)*thirdsWidth), y: corner34Y
+            },{
+              x: corner4X + (i*thirdsWidth), y: corner34Y
+            }];
+
+          svg.append('path')
+            .attr("d", line(statsArea) + 'Z')
+            .attr('class', 'statsArea '+shape)
+            .style("fill", "#5d9eff")
+            .style("stroke-width", "3px")
+            .style("stroke", "white");
+        });
+
+      } // end drawMap
+
+      function responsivefy(svg) {
+
+            // Container is the DOM element, svg is appended.
+            // Then we measure the container and find its
+            // aspect ratio.
+            const container = d3.select(svg.node().parentNode),
+                width = parseInt(svg.style('width'), 10),
+                height = parseInt(svg.style('height'), 10),
+                aspect = width / height;
+
+            // Add viewBox attribute to set the value to initial size
+            // add preserveAspectRatio attribute to specify how to scale
+            // and call resize so that svg resizes on page load
+            svg.attr('viewBox', `0 0 ${width} ${height}`).
+            attr('preserveAspectRatio', 'xMinYMid').
+            call(resize);
+
+            d3.select(window).on('resize.' + container.attr('id'), resize);
+
+            function resize() {
+                const targetWidth = parseInt(container.style('width'));
+                svg.attr('width', targetWidth);
+                svg.attr('height', Math.round(targetWidth / aspect));
+            }
+        }
+
+  </script>
+</body>
+
+</html>
