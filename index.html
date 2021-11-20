@@ -24,20 +24,13 @@
       width: 960px;
       margin: 18px auto;
     }
-    h1 {
-      width: 960px;
-      margin: 0 auto;
-      font-size: 2em;
-    }
-    a {
-      color: white;
-    }
-    ul li {
-      margin: 0 0 8px 0;
-    }
     #figure {
       width: 700px;
       height: 700px;
+    }
+    .stats {
+      font-size: .7em;
+      font-family: Roboto, sans-serif;
     }
     /* .outline {
       stroke: #40767a;
@@ -112,10 +105,10 @@
         const farBaseline = 450;
         const scale = farBaseline/width;
         const backLeft = (width-farBaseline)/2;
-        console.log('height: '+height);
-        console.log('offset: '+backLeft);
+        // console.log('height: '+height);
+        // console.log('offset: '+backLeft);
         const length = Math.sqrt(height**2+backLeft**2);
-        console.log('length: '+length);
+        // console.log('length: '+length);
 
 
         // select the map element
@@ -123,9 +116,9 @@
           .append("svg")  // append a new SVG element
           .attr('width', width + margin.left + margin.right)
           .attr('height', height + margin.top + margin.bottom)
-          .call(responsivefy) // Call responsivefy to make the chart responsive
-            .append('g')
-            .attr('transform', `translate(${margin.left}, ${margin.top})`);
+          // .call(responsivefy) // Call responsivefy to make the chart responsive
+          //   .append('g')
+          //   .attr('transform', `translate(${margin.left}, ${margin.top})`);
 
         var line = d3.line()
           .x(function(d) {
@@ -134,13 +127,6 @@
           .y(function(d) {
             return d.y;
           });
-
-        // svg.append('rect')
-        //   .attr('width', width)
-        //   .attr('height', height)
-        //   .style('fill', '#5d9eff')
-        //   .style('stroke-width', '3px')
-        //   .style('stroke', 'white');
 
         var outline = [{
             x: backLeft, y: 0
@@ -218,10 +204,10 @@
 
         const serviceLineL = width - 2*((-1/3)*(alley-backLeft-alley*scale)+alley);
         const thirdsWidth = serviceLineL/6;
-        console.log("thirdsWidth: "+thirdsWidth);
+        // console.log("thirdsWidth: "+thirdsWidth);
         const singlesNet = width - 2*((-2/3)*(alley-backLeft-alley*scale)+alley);
         const thirdsNetWidth = singlesNet/6;
-        console.log("thirdsNetWidth: "+thirdsNetWidth);
+        // console.log("thirdsNetWidth: "+thirdsNetWidth);
 
         const corner12Y = height*(1/3);
         const corner34Y = height/3 + height/3;
@@ -243,12 +229,42 @@
               x: corner4X + (i*thirdsWidth), y: corner34Y
             }];
 
-          svg.append('path')
+          let textArea = svg.append('path')
             .attr("d", line(statsArea) + 'Z')
             .attr('class', 'statsArea '+shape)
             .style("fill", "#5d9eff")
             .style("stroke-width", "3px")
             .style("stroke", "white");
+
+          let stats = statsData.find(section => section.id === shape);
+
+          var text = svg.append('text')
+            .attr('class', 'stats')
+            .style('fill', 'white')
+            .attr('text-anchor', 'middle');
+
+            text.append('tspan')
+              .attr('x', getBoundingBoxCenter(textArea)[0])
+              .attr('y', getBoundingBoxCenter(textArea)[1])
+              .style('font-weight','bold')
+              .text("Frequency");
+
+            text.append('tspan')
+              .attr('x', getBoundingBoxCenter(textArea)[0])
+              .attr('dy','1.2em')
+              .text(stats["Frequency"]);
+
+            text.append('tspan')
+              .attr('x', getBoundingBoxCenter(textArea)[0])
+              .attr('dy','2em')
+              .style('font-weight', 'bold')
+              .text("Win %");
+
+            text.append('tspan')
+              .attr('x', getBoundingBoxCenter(textArea)[0])
+              .attr('dy','1.2em')
+              .text(stats["Win %"]);
+
         });
 
       } // end drawMap
@@ -277,6 +293,16 @@
                 svg.attr('width', targetWidth);
                 svg.attr('height', Math.round(targetWidth / aspect));
             }
+        }
+
+        function getBoundingBoxCenter (selection) {
+          // get the DOM element from a D3 selection
+          // you could also use "this" inside .each()
+          var element = selection.node();
+          // use the native SVG interface to get the bounding box
+          var bbox = element.getBBox();
+          // return the center of the bounding box
+          return [bbox.x + bbox.width/2, bbox.y + bbox.height/2];
         }
 
   </script>

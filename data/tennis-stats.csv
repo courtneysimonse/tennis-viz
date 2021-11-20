@@ -1,19 +1,19 @@
-﻿,Frequency,Win %,Total Serves,Serves Made,Serves Made Won
-Deuce Wide,35%,36%,35/100,60%,60%
-Deuce Middle,15%,31.50%,15/100,70%,45%
-Deuce T,50%,42%,50/100,55%,70%
-Ad Wide,60%,33%,60/100,60%,55%
-Ad Middle,20%,33.75%,25/100,75%,45%
-Ad T,20%,38.50%,15/100,55%,70%
-,,,,,
-,,,,,
-,,,,,
-,,,,,
-,,,,,
-,,,,,
-,,,,,
-,,,,,
-,,,,,
-,,,,,
-,,,,,
-,,,,,
+﻿id,Name,Frequency,Win %,Total Serves,Serves Made,Serves Made Won
+deuceWide,Deuce Wide,35%,36%,35/100,60%,60%
+deuceMiddle,Deuce Middle,15%,31.50%,15/100,70%,45%
+deuceT,Deuce T,50%,42%,50/100,55%,70%
+adWide,Ad Wide,60%,33%,60/100,60%,55%
+adMiddle,Ad Middle,20%,33.75%,25/100,75%,45%
+adT,Ad T,20%,38.50%,15/100,55%,70%
+,,,,,,
+,,,,,,
+,,,,,,
+,,,,,,
+,,,,,,
+,,,,,,
+,,,,,,
+,,,,,,
+,,,,,,
+,,,,,,
+,,,,,,
+,,,,,,
