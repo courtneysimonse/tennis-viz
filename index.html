@@ -11,53 +11,41 @@
     body {
       padding: 0;
       margin: 0;
-      background: #cae8e5;
       font-family: Roboto, sans-serif;
     }
-    /* header, footer {
-      background: #20252A;
-      color: white;
-      padding: 18px 0;
-      box-shadow: 0px 1px 3px #20252A;
-    } */
     .container {
       width: 960px;
       margin: 18px auto;
     }
     #figure {
-      width: 700px;
+      width: 600px;
       height: 700px;
     }
     .stats {
       font-size: .7em;
       font-family: Roboto, sans-serif;
     }
-    /* .outline {
-      stroke: #40767a;
-    } */
-    /* .hover {
-      fill: #3f8c84;
-      stroke-width: 3;
-    } */
+    .tooltip {
+      background-color: white;
+      position: absolute;
+      z-index: 900;
+      pointer-events: none;
+      border: solid;
+      border-width: 2px;
+      border-radius: 5px;
+      padding: 5px;
+    }
+
   </style>
 </head>
 
 <body>
-  <!-- <header>
-    <h1>Tennis Viz</h1>
-  </header> -->
   <div class="container">
     <div id="figure" style="background-color: #c0c4cb;">
     </div>
   </div>
   </div>
-  <!-- <footer>
-    <div class="container">
-      <ul>
-        <li>Map authored by <a href="https://courtneysimonse.github.io/" target="_blank">Courtney Simonse</a></li>
-      </ul>
-    </div>
-  </footer> -->
+
 
   <script src="https://d3js.org/d3.v7.min.js"></script>
   <script>
@@ -74,12 +62,6 @@
         console.log(error)
       }
 
-      // // define color generator
-      // const colorPolygons = d3.scaleOrdinal(d3.schemePaired.slice(0,4));
-      const colorPolygons = d3.scaleOrdinal(["#2e3c53","#636d7e","#979ea9"]);
-      // const colorPolygons = d3.scaleOrdinal(["#3f767a","#5da9a9","#95d5d4"]);
-      const colorLabels = d3.scaleOrdinal(["#fbfcfc","#fbfcfc","#0b2745"])
-
       // accepts the data as a parameter statesData
       function drawMap(data) {
 
@@ -93,10 +75,7 @@
             left: 0
         };
 
-        // Dimensions: 700 x 700
-        // used for the initial rendering
-        // width to height proportion
-        // its preserved as the chart is resized
+        // Dimensions: 700 x 600
         const width = 700 - margin.left - margin.right;
         const height = 600 - margin.top - margin.bottom;
 
@@ -105,10 +84,7 @@
         const farBaseline = 450;
         const scale = farBaseline/width;
         const backLeft = (width-farBaseline)/2;
-        // console.log('height: '+height);
-        // console.log('offset: '+backLeft);
         const length = Math.sqrt(height**2+backLeft**2);
-        // console.log('length: '+length);
 
 
         // select the map element
@@ -120,23 +96,27 @@
           //   .append('g')
           //   .attr('transform', `translate(${margin.left}, ${margin.top})`);
 
-        var line = d3.line()
-          .x(function(d) {
-            return d.x;
-          })
-          .y(function(d) {
-            return d.y;
-          });
+        var div = d3.select("body").append("div")
+         .attr("class", "tooltip")
+         .style("display", "none");
 
-        var outline = [{
-            x: backLeft, y: 0
-          },{
-            x: 0, y: height
-          },{
-            x: width, y: height
-          },{
-            x: backLeft+farBaseline, y: 0
-          }];
+      var line = d3.line()
+        .x(function(d) {
+          return d.x;
+        })
+        .y(function(d) {
+          return d.y;
+        });
+
+      var outline = [{
+          x: backLeft, y: 0
+        },{
+          x: 0, y: height
+        },{
+          x: width, y: height
+        },{
+          x: backLeft+farBaseline, y: 0
+        }];
 
         svg.append('path')
           .attr("d", line(outline) + 'Z')
@@ -219,6 +199,9 @@
         const statsAreas = ['adWide','adMiddle','adT','deuceT','deuceMiddle','deuceWide'];
 
         statsAreas.forEach((shape, i) => {
+
+          let stats = statsData.find(section => section.id === shape);
+
           let statsArea = [{
               x: corner1X + (i*thirdsNetWidth), y: corner12Y
             },{
@@ -234,14 +217,29 @@
             .attr('class', 'statsArea '+shape)
             .style("fill", "#5d9eff")
             .style("stroke-width", "3px")
-            .style("stroke", "white");
+            .style("stroke", "white")
+            .on('mouseover', function (event) {
+                  div.style("display", "block");
+                   div.html('<p>Total Serves: '+stats['Total Serves']+'</p>'+
+                   	        '<p>Serves Made: '+stats['Serves Made']+'</p>'+
+                            '<p>Serves Made Won: '+stats['Serves Made Won']+'</p>')
+                      .style("left", (event.pageX)+2 + "px")
+                      .style("top", (event.pageY)+5 + "px");
+             })
+             .on('mouseout', function (event) {
+                  div.style("display", 'none');
+             })
+             .on('mousemove', function (event) {
+                  div.style("left", (event.pageX)+2 + "px")
+                  .style("top", (event.pageY)+5 + "px");
 
-          let stats = statsData.find(section => section.id === shape);
+              });
 
           var text = svg.append('text')
             .attr('class', 'stats')
             .style('fill', 'white')
-            .attr('text-anchor', 'middle');
+            .attr('text-anchor', 'middle')
+            .attr('pointer-events','none');
 
             text.append('tspan')
               .attr('x', getBoundingBoxCenter(textArea)[0])
@@ -264,6 +262,12 @@
               .attr('x', getBoundingBoxCenter(textArea)[0])
               .attr('dy','1.2em')
               .text(stats["Win %"]);
+
+            text.append('tspan')
+              .attr('x', getBoundingBoxCenter(textArea)[0])
+              .attr('dy','2em')
+              .style('font-weight', 'bold')
+              .text(stats["Name"]);
 
         });
 
