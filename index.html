@@ -113,9 +113,6 @@
       // accepts the data as a parameter statesData
       function drawMap(data) {
 
-        // data is array of our datasets
-        var statsData = data[0]
-
         const margin = {
             top: 0,
             right: 0,
@@ -234,7 +231,7 @@
 
         statsAreas.forEach((shape, i) => {
 
-          let stats = statsData.find(section => section.id === shape);
+          let stats = data.find(section => section.id === shape);
 
           let statsArea = [{
               x: corner1X + (i*thirdsNetWidth), y: corner12Y
